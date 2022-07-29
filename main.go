@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/divesharora/KryptoBackendTask/api/controllers"
 	"github.com/divesharora/KryptoBackendTask/api/db"
 	"github.com/divesharora/KryptoBackendTask/api/router"
 	"github.com/divesharora/KryptoBackendTask/api/utils"
@@ -26,14 +27,14 @@ func main() {
 	}))
 
 	db.Connect()
-
 	router.MountRoutes(app)
 
 	port := utils.GetPort()
+
+	go controllers.InitializeTrigger()
 
 	err := app.Listen(fmt.Sprintf(":%s", port))
 	if err != nil {
 		panic(err)
 	}
-
 }

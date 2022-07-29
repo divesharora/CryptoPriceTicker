@@ -15,8 +15,15 @@ func MountRoutes(c *fiber.App) {
 	auth := api.Group("users")
 
 	{
-		auth.Post("/signup/",middlewares.VerifyJWT, controllers.CreateUser)
+		auth.Post("/signup/", middlewares.VerifyJWT, controllers.CreateUser)
 		auth.Post("/login/", controllers.Login)
+	}
+
+	alerts := api.Group("alerts")
+	{
+		alerts.Post("/", middlewares.VerifyJWT, controllers.CreateAlert)
+		alerts.Get("/", middlewares.VerifyJWT, controllers.GetAlerts)
+		alerts.Delete("/:id", middlewares.VerifyJWT, controllers.DeleteAlert)
 	}
 
 }
