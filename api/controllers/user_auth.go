@@ -65,13 +65,15 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	tokenClaims := jwt.MapClaims{}
-	tokenClaims["id"] = user.ID
-	tokenClaims["username"] = user.Username
-	tokenClaims["authorized"] = true
-	tokenClaims["exp"] = time.Now().Add(time.Minute * 24).Unix()
+	token := &models.Token{
+		UserID: existingUser.ID,
+		Email:  existingUser.Email,
+		StandardClaims: &jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Minute * 15).Unix(),
+		},
+	}
 
-	tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, tokenClaims).SignedString([]byte(viper.GetString("JWT_SECRET")))
+	tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, token).SignedString([]byte(viper.GetString("JWT_SECRET")))
 	if err != nil {
 		return c.Status(500).SendString("Error Generating Token")
 	}

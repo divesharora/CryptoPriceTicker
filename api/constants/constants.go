@@ -5,4 +5,5 @@ var ENV = []string{
 	"DB_PASS",
 	"DB_NAME",
 	"DB_HOST",
+	"JWT_SECRET",
 }
