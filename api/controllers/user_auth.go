@@ -73,7 +73,6 @@ func Login(c *fiber.Ctx) error {
 		},
 	}
 
-	fmt.Println(token)
 
 	tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, token).SignedString([]byte(viper.GetString("JWT_SECRET")))
 	if err != nil {

@@ -6,6 +6,5 @@ var ENV = []string{
 	"DB_NAME",
 	"DB_HOST",
 	"JWT_SECRET",
-	"MAIL",
-	"MAIL_PASSWORD",
+	"REDIS_URL",
 }

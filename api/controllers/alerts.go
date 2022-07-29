@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 
+	"github.com/divesharora/KryptoBackendTask/api/cache"
 	"github.com/divesharora/KryptoBackendTask/api/db"
 	"github.com/divesharora/KryptoBackendTask/api/models"
 	"github.com/gofiber/fiber/v2"
@@ -24,6 +26,12 @@ func CreateAlert(c *fiber.Ctx) error {
 			"message": "Alert already exists",
 		})
 	}
+
+	var allAlerts []models.Alert
+	alertsDB.Find(&allAlerts).Where("email = ?", alert.Email)
+	j, _ := json.Marshal(allAlerts)
+
+	cache.SetValue(alert.Email, string(j), 0)
 	return c.JSON(fiber.Map{
 		"message": "Alert created successfully",
 	})
@@ -34,7 +42,14 @@ func GetAlerts(c *fiber.Ctx) error {
 	alertsDB.AutoMigrate(&models.Alert{})
 	email := c.Get("email")
 	var alerts []models.Alert
-	alertsDB.Find(&alerts).Where("email = ?", email)
+
+	cv, _ := cache.GetValue(email)
+
+	if cv != "" {
+		json.Unmarshal([]byte(cv), &alerts)
+	} else {
+		alertsDB.Find(&alerts).Where("email = ?", email)
+	}
 	return c.JSON(alerts)
 }
 
@@ -47,7 +62,15 @@ func DeleteAlert(c *fiber.Ctx) error {
 			"message": "Invalid ID",
 		})
 	}
-	alertsDB.Delete(&models.Alert{}, "id = ?", ID)
+	var a = models.Alert{}
+	alertsDB.First(&a, ID)
+	alertsDB.Delete(&a, "id = ?", ID)
+
+	var allAlerts []models.Alert
+	alertsDB.Find(&allAlerts).Where("email = ?", a.Email)
+	j, _ := json.Marshal(allAlerts)
+
+	cache.SetValue(a.Email, string(j), 0)
 	return c.JSON(fiber.Map{
 		"message": "Alert deleted successfully",
 	})

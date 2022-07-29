@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/divesharora/KryptoBackendTask/api/cache"
 	"github.com/divesharora/KryptoBackendTask/api/controllers"
 	"github.com/divesharora/KryptoBackendTask/api/db"
 	"github.com/divesharora/KryptoBackendTask/api/router"
@@ -32,6 +33,8 @@ func main() {
 	port := utils.GetPort()
 
 	go controllers.InitializeTrigger()
+
+	cache.GetRedis()
 
 	err := app.Listen(fmt.Sprintf(":%s", port))
 	if err != nil {
