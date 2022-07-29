@@ -2,10 +2,14 @@ package controllers
 
 import (
 	"fmt"
+	"net/mail"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/divesharora/KryptoBackendTask/api/db"
 	"github.com/divesharora/KryptoBackendTask/api/models"
 	"github.com/gofiber/fiber/v2"
+	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -14,6 +18,12 @@ func CreateUser(c *fiber.Ctx) error {
 	if err := c.BodyParser(&user); err != nil {
 		return err
 	}
+
+	_, err := mail.ParseAddress(user.Email)
+	if err != nil {
+		return c.Status(400).SendString("Invalid Email")
+	}
+
 	pass, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		fmt.Println(err)
@@ -34,4 +44,41 @@ func CreateUser(c *fiber.Ctx) error {
 	})
 }
 
-func Login()
+func Login(c *fiber.Ctx) error {
+	var user models.Users
+	var existingUser models.Users
+	if err := c.BodyParser(&user); err != nil {
+		return err
+	}
+	userDB := db.GetDB()
+
+	if err := userDB.Where("email = ?", user.Email).First(&existingUser).Error; err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "User does not exist",
+		})
+	}
+
+	err := bcrypt.CompareHashAndPassword([]byte(existingUser.Password), []byte(user.Password))
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Invalid password",
+		})
+	}
+
+	tokenClaims := jwt.MapClaims{}
+	tokenClaims["id"] = user.ID
+	tokenClaims["username"] = user.Username
+	tokenClaims["authorized"] = true
+	tokenClaims["exp"] = time.Now().Add(time.Minute * 24).Unix()
+
+	tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, tokenClaims).SignedString([]byte(viper.GetString("JWT_SECRET")))
+	if err != nil {
+		return c.Status(500).SendString("Error Generating Token")
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "User logged in successfully",
+		"token":   tokenString,
+	})
+
+}

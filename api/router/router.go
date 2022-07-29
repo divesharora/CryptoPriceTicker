@@ -11,17 +11,11 @@ func MountRoutes(c *fiber.App) {
 	{
 	}
 
-	comments := api.Group("users")
+	auth := api.Group("users")
 
 	{
-		comments.Post("/signup/", controllers.CreateUser)
+		auth.Post("/signup/", controllers.CreateUser)
+		auth.Post("/login/", controllers.Login)
 	}
 
-	// edits := api.Group("edits")
-	// {
-	// 	edits.Post("/create/", controllers.CreateEdit)
-	// 	edits.Get("/get/:version_id/:record_id", controllers.GetEdit)
-	// 	edits.Get("/getAll/:record_id", controllers.GetAllEdits)
-	// 	edits.Patch("/approve/:version_id/:record_id", controllers.ApproveEdit)
-	// }
 }
